@@ -1,5 +1,68 @@
 #!/bin/bash
 
+# Remove DNS servers from the list if name servers could not be reached or record not found.
+# Only used to trim old or stale DNS servers from the list. Use example.com to test.
+remove_dns_server=false
+
+query_dns_servers() {
+    local domain="$1"
+    local record_type="$2"
+    local dns_servers_yaml="$3"
+    local remove_dns_server=$4
+
+    counter=0
+    total_dns_servers=$(yq -r 'length' "$dns_servers_yaml")
+
+    # Load the DNS servers list from YAML file
+    if [ ! -f "$dns_servers_yaml" ]; then
+        echo "Error: $dns_servers_yaml not found"
+        return 1
+    fi
+
+    counter=0
+    total_dns_servers=$(yq -r 'length' "$dns_servers_yaml")
+
+    while read -r dns_server; do
+        counter=$((counter+1))
+        remaining_dns_servers=$((total_dns_servers-counter))
+
+        dns_server_ip=$(yq -r ".[] | select(.reverse == \"$dns_server\").ip" "$dns_servers_yaml")
+        dns_server_reverse=$(yq -r ".[] | select(.reverse == \"$dns_server\").reverse" "$dns_servers_yaml")
+        dns_server_provider=$(yq -r ".[] | select(.reverse == \"$dns_server\").provider" "$dns_servers_yaml")
+        dns_server_country=$(yq -r ".[] | select(.reverse == \"$dns_server\").country" "$dns_servers_yaml")
+
+        echo "Querying DNS server: ${dns_server_reverse} (${dns_server_ip}) (${counter}/${total_dns_servers})"
+        if [[ -n "$dns_server_provider" ]]; then
+            echo "Provider: ${dns_server_provider}"
+        fi
+        if [[ -n "$dns_server_country" ]]; then
+            echo "Country: ${dns_server_country}"
+        fi
+        if [[ -n "$dns_server_reverse" ]]; then
+            echo "Reverse DNS: ${dns_server_reverse}"
+        fi
+
+        # Dig the domain for the record type and if "no servers could be reached" then echo "no servers could be reached"
+        records=$(dig "@${dns_server_ip}" "${record_type}" "${domain}" +short)
+        if [ -z "$records" ]; then
+            echo "No ${record_type} records found for ${domain}"
+            if $remove_dns; then
+                yq "del(.[] | select(.reverse == \"$dns_server_reverse\"))" "$dns_servers_yaml" -i
+            fi
+        elif [[ "$records" =~ "no servers could be reached" ]]; then
+            echo "No servers could be reached"
+            if $remove_dns; then
+                yq "del(.[] | select(.reverse == \"$dns_server_reverse\"))" "$dns_servers_yaml" -i
+            fi
+        else
+            echo "${record_type} records for ${domain}:"
+            echo "${records}"
+        fi
+
+        echo ""
+    done < <(yq -r '.[].reverse' "$dns_servers_yaml")
+}
+
 if [ -z "$1" ]; then
     echo "Usage: $0 <domain> [record_type]"
     exit 1
@@ -21,84 +84,19 @@ if [[ ! "$record_type" =~ ^(A|AAAA|CNAME|MX|NS|PTR|SOA|SRV|TXT)$ ]]; then
     exit 1
 fi
 
-# List of global recursive DNS servers with labels (you can modify or extend this list as needed)
-declare -A recursive_dns_servers=(
-  # Global
-  ["Google Public DNS 1"]="8.8.8.8"
-  ["Google Public DNS 2"]="8.8.4.4"
-  ["Cloudflare DNS 1"]="1.1.1.1"
-  ["Cloudflare DNS 2"]="1.0.0.1"
-  ["Quad9 DNS 1"]="9.9.9.9"
-  ["Quad9 DNS 2"]="149.112.112.112"
-  ["OpenDNS 1"]="208.67.222.222"
-  ["OpenDNS 2"]="208.67.220.220"
-  # United States
-  ["Level3 US 1"]="209.244.0.3"
-  ["Level3 US 2"]="209.244.0.4"
-  ["Comodo Secure US 1"]="8.26.56.26"
-  ["Comodo Secure US 2"]="8.20.247.20"
-  # United Kingdom
-  ["OpenNIC UK 1"]="5.132.191.104"
-  ["OpenNIC UK 2"]="5.132.191.162"
-  ["Yandex UK 1"]="77.88.8.8"
-  ["Yandex UK 2"]="77.88.8.1"
-  # Europe
-  ["OpenNIC DE 1"]="185.121.177.177"
-  ["OpenNIC DE 2"]="169.239.202.202"
-  ["OpenNIC CH 1"]="193.183.98.154"
-  ["OpenNIC CH 2"]="94.103.153.176"
-  # Australia
-  ["OpenNIC AU 1"]="103.236.162.119"
-  ["OpenNIC AU 2"]="103.236.162.118"
-  ["Telstra AU 1"]="139.130.4.4"
-  ["Telstra AU 2"]="61.9.211.1"
-  # New Zealand
-  ["ICONZ NZ 1"]="210.55.111.1"
-  ["ICONZ NZ 2"]="202.27.184.3"
-  ["Spark NZ 1"]="122.56.237.1"
-  ["Spark NZ 2"]="210.55.111.1"
-  # South Africa
-  ["Vox Telecom ZA 1"]="196.35.152.253"
-  ["Vox Telecom ZA 2"]="206.223.136.195"
-  ["Xneelo ZA 1"]="196.22.227.25"
-  ["Xneelo ZA 2"]="41.204.202.1"
-  # Nigeria
-  ["Spectranet NG 1"]="154.118.230.89"
-  ["Spectranet NG 2"]="197.210.252.39"
-  ["Swift Networks NG 1"]="41.223.93.42"
-  ["Swift Networks NG 2"]="41.223.93.41"
-)
+# Check if yq is installed and install it if it's not
+if ! command -v yq &> /dev/null; then
+    echo "yq not found, please install..."
+    # sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+    exit 1
+fi
 
-# Get the TLD and authoritative name servers for the domain
-tld_ns=$(dig +short SOA "$domain" | awk '{print $1}')
-auth_ns=$(dig +short NS "$domain")
+# Original list from: https://github.com/YoSmudge/dnsyo/blob/master/resolver-list.yml
 
-# Combine all the DNS servers into one list
-dns_servers=("Root Name Server (A Root)" "198.41.0.4" ${!recursive_dns_servers[@]} $tld_ns $auth_ns)
+# Query each DNS server for: common servers
+printf "Getting ${record_type} records for ${domain} from ${total_servers} popular DNS servers...\n\n"
+query_dns_servers $1 $2 "dns_servers_common.yaml" $remove_dns_server
 
-echo "Getting ${record_type} records for ${domain} from global and regional DNS servers..."
-
-# Query each DNS server for: recursive_dns_servers
-for dns_server_label in "${!recursive_dns_servers[@]}"; do
-    dns_server="${recursive_dns_servers[$dns_server_label]}"
-    echo "Querying DNS server: ${dns_server_label} (${dns_server})"
-
-    if [[ "$dns_server_label" =~ ^(Root|Google|OpenDNS|Cloudflare|Quad9) ]]; then
-        echo "(Global DNS server)"
-    else
-        echo "(Regional DNS server)"
-    fi
-
-    # Dig the domain for the record type and if "no servers could be reached" then echo "no servers could be reached"
-    records=$(dig "@${dns_server}" "${record_type}" "${domain}" +short)
-    if [ -z "$records" ]; then
-        echo "No ${record_type} records found for ${domain}"
-    elif [[ "$records" =~ "no servers could be reached" ]]; then
-        echo "No servers could be reached"
-    else
-        echo "${record_type} records for ${domain}:"
-        echo "${records}"
-    fi
-
-    echo ""
-done
+# Query each DNS server for: common servers
+printf "Getting ${record_type} records for ${domain} from ${total_servers} our full list DNS servers...\n\n"
+query_dns_servers $1 $2 "dns_servers_all.yaml" $remove_dns_server

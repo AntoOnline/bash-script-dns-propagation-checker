@@ -1,0 +1,8 @@
+- country: US
+  ip: 8.8.4.4
+  provider: GOOGLE - Google Inc.
+  reverse: google-public-dns-b.google.com
+- country: US
+  ip: 8.8.8.8
+  provider: GOOGLE - Google Inc.
+  reverse: google-public-dns-a.google.com
