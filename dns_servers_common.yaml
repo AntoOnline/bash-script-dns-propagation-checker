@@ -1,8 +1,104 @@
-- country: US
-  ip: 8.8.4.4
-  provider: GOOGLE - Google Inc.
-  reverse: google-public-dns-b.google.com
-- country: US
+- country: Global
+  ip: 1.1.1.1
+  provider: Cloudflare
+  reverse: one.one.one.one
+
+- country: Global
   ip: 8.8.8.8
-  provider: GOOGLE - Google Inc.
-  reverse: google-public-dns-a.google.com
+  provider: Google
+  reverse: dns.google
+
+- country: Global
+  ip: 208.67.222.222
+  provider: OpenDNS
+  reverse: resolver1.opendns.com
+
+- country: Global
+  ip: 9.9.9.9
+  provider: Quad9
+  reverse: dns.quad9.net
+
+- country: Global
+  ip: 84.200.69.80
+  provider: DNS.WATCH
+  reverse: resolver2.dns.watch
+
+- country: US
+  ip: 156.154.70.1
+  provider: Neustar
+  reverse: public-dns-a.us-east-1.neustar.biz
+
+- country: US
+  ip: 205.171.3.65
+  provider: Verisign
+  reverse: resolver1.level3.net
+
+- country: US
+  ip: 64.6.64.6
+  provider: Verisign
+  reverse: resolver1.fdns.net
+
+- country: Japan
+  ip: 210.130.111.20
+  provider: NTT Communications
+  reverse: dns1.ocn.ne.jp
+
+- country: Japan
+  ip: 221.186.246.228
+  provider: SoftBank
+  reverse: dns.softbank
+
+- country: South Korea
+  ip: 168.126.63.1
+  provider: SK Broadband
+  reverse: dns.bora.net
+
+- country: South Korea
+  ip: 218.39.8.8
+  provider: LG Uplus
+  reverse: dns.lguplus.co.kr
+
+- country: India
+  ip: 202.138.120.107
+  provider: BSNL
+  reverse: ns1.bsnl.in
+
+- country: India
+  ip: 202.56.250.5
+  provider: Airtel
+  reverse: ns.airtel.in
+
+- country: Brazil
+  ip: 200.221.11.101
+  provider: NIC.br
+  reverse: b.dns.br
+
+- country: Brazil
+  ip: 200.167.249.222
+  provider: Vivo
+  reverse: dns1.vivo.com.br
+
+- country: Germany
+  ip: 194.25.0.68
+  provider: Deutsche Telekom
+  reverse: dns01-tld.t-online.de
+
+- country: Germany
+  ip: 217.237.151.51
+  provider: Vodafone
+  reverse: dns.vodafone.de
+
+- country: UK
+  ip: 194.168.4.100
+  provider: BT
+  reverse: dns1.bt.com
+
+- country: UK
+  ip: 213.120.234.50
+  provider: Virgin Media
+  reverse: ns1.virginmedia.net
+
+- country: Australia
+  ip: 203.50.2.71
+  provider: Telstra
+  reverse: ns1.telstra.net

@@ -1,6 +1,108 @@
-# List of known *working* servers
-# Working server list is calculated fortnightly
-# If you'd like to add a new server, add it to resolver-list-sources.yml
+- country: Global
+  ip: 1.1.1.1
+  provider: Cloudflare
+  reverse: one.one.one.one
+  category: common
+- country: Global
+  ip: 8.8.8.8
+  provider: Google
+  reverse: dns.google
+  category: common
+- country: Global
+  ip: 208.67.222.222
+  provider: OpenDNS
+  reverse: resolver1.opendns.com
+  category: common
+- country: Global
+  ip: 9.9.9.9
+  provider: Quad9
+  reverse: dns.quad9.net
+  category: common
+- country: Global
+  ip: 84.200.69.80
+  provider: DNS.WATCH
+  reverse: resolver2.dns.watch
+  category: common
+- country: US
+  ip: 156.154.70.1
+  provider: Neustar
+  reverse: public-dns-a.us-east-1.neustar.biz
+  category: common
+- country: US
+  ip: 205.171.3.65
+  provider: Verisign
+  reverse: resolver1.level3.net
+  category: common
+- country: US
+  ip: 64.6.64.6
+  provider: Verisign
+  reverse: resolver1.fdns.net
+  category: common
+- country: Japan
+  ip: 210.130.111.20
+  provider: NTT Communications
+  reverse: dns1.ocn.ne.jp
+  category: common
+- country: Japan
+  ip: 221.186.246.228
+  provider: SoftBank
+  reverse: dns.softbank
+  category: common
+- country: South Korea
+  ip: 168.126.63.1
+  provider: SK Broadband
+  reverse: dns.bora.net
+  category: common
+- country: South Korea
+  ip: 218.39.8.8
+  provider: LG Uplus
+  reverse: dns.lguplus.co.kr
+  category: common
+- country: India
+  ip: 202.138.120.107
+  provider: BSNL
+  reverse: ns1.bsnl.in
+  category: common
+- country: India
+  ip: 202.56.250.5
+  provider: Airtel
+  reverse: ns.airtel.in
+  category: common
+- country: Brazil
+  ip: 200.221.11.101
+  provider: NIC.br
+  reverse: b.dns.br
+  category: common
+- country: Brazil
+  ip: 200.167.249.222
+  provider: Vivo
+  reverse: dns1.vivo.com.br
+  category: common
+- country: Germany
+  ip: 194.25.0.68
+  provider: Deutsche Telekom
+  reverse: dns01-tld.t-online.de
+  category: common
+- country: Germany
+  ip: 217.237.151.51
+  provider: Vodafone
+  reverse: dns.vodafone.de
+  category: common
+- country: UK
+  ip: 194.168.4.100
+  provider: BT
+  reverse: dns1.bt.com
+  category: common
+- country: UK
+  ip: 213.120.234.50
+  provider: Virgin Media
+  reverse: ns1.virginmedia.net
+  category: common
+- country: Australia
+  ip: 203.50.2.71
+  provider: Telstra
+  reverse: ns1.telstra.net
+  category: common
 - country: CA
   ip: 208.79.56.204
   provider: 295CA-TOR-ASN - FIBERNETICS CORPORATION

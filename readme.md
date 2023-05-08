@@ -1,45 +1,50 @@
-# DNS Query Script README
+# DNS Query Script
 
-This is a bash script that allows you to query a domain name for various DNS record types (A, AAAA, CNAME, MX, NS, PTR, SOA, SRV, TXT) using a list of popular DNS servers. The script loads the list of DNS servers from YAML files and uses `dig` to perform the queries.
+This script performs DNS queries for a specified domain and record type against a list of DNS servers provided in a YAML file. It uses the `dig` command to query each DNS server in the list, and returns the results of the query.
 
 ## Usage
 
-The script can be run from the command line using the following syntax:
-
 ```bash
-./dns_query.sh <domain> [record_type]
+./dns_query.sh <domain> [record_type] <dns_yaml_file>
 ```
 
-Where `<domain>` is the domain name to query and `[record_type]` is the type of DNS record to query (default is A record).
+- `domain` - The domain name to query.
+- `record_type` - Optional. The type of DNS record to query for. Must be one of `A`, `AAAA`, `CNAME`, `MX`, `NS`, `PTR`, `SOA`, `SRV`, or `TXT`. If not specified, the script will default to querying for `A` records.
+- `dns_yaml_file` - Required. The YAML file containing the list of DNS servers to query.
+
+## Removing DNS servers
+
+The script allows you to remove stale DNS servers from the list. To enable this feature, set the `remove_dns_server` variable to `y` in the script before running it.
+
+```bash
+remove_dns_server="n"
+```
+
+If a DNS server in the list cannot be reached or returns an error for the specified domain and record type, the script will automatically remove it from the list if `remove_dns_server` is set to `y`.
+
+## YAML file format
+
+The list of DNS servers to query should be provided in a YAML file with the following format:
+
+```yaml
+- reverse: <reverse DNS>
+  ip: <IP address>
+  provider: <provider name>
+  country: <country code>
+```
+
+- `reverse` - The reverse DNS name for the DNS server.
+- `ip` - The IP address of the DNS server.
+- `provider` - The name of the DNS server provider.
+- `country` - The two-letter country code of the location of the DNS server.
+
+The script comes with two sample YAML files:
+
+- `dns_servers_all.yaml` - Contains a list of DNS servers from various providers and countries.
+- `dns_servers_common.yaml` - Contains a list of commonly used DNS servers.
+
+You can use one of these files as a starting point for your own list of DNS servers.
 
 ## Dependencies
 
-The script requires `dig` and `yq` to be installed. You can install `yq` by downloading the latest release from the [GitHub page](https://github.com/mikefarah/yq/releases) and adding the binary to your PATH.
-
-## DNS Server Lists
-
-The script uses two YAML files to load the list of DNS servers: `dns_servers_common.yaml` and `dns_servers_all.yaml`. The `dns_servers_common.yaml` file contains a list of popular DNS servers, while the `dns_servers_all.yaml` file contains a larger list of DNS servers.
-
-You can add or remove DNS servers from the YAML files as needed.
-
-## Removing Stale DNS Servers
-
-By default, the script does not remove DNS servers from the list. However, you can enable this feature by setting the `remove_dns_server` variable to `true` in the script.
-
-## Output
-
-The script outputs the DNS server being queried, along with its reverse DNS, IP address, provider, and country (if available). For each DNS server, the script outputs the results of the DNS query, or an error message if the query failed.
-
-## Example Usage
-
-```bash
-./dns_query.sh example.com MX
-```
-
-This command will query example.com for MX records using the default list of DNS servers. The results will be displayed in the terminal.
-
-## Want to connect?
-
-Feel free to contact me on [Twitter](https://twitter.com/OnlineAnto), [DEV Community](https://dev.to/antoonline/) or [LinkedIn](https://www.linkedin.com/in/anto-online) if you have any questions or suggestions.
-
-Or just visit my [website](https://anto.online) to see what I do.
+This script requires the `dig` command and the `yq` tool. If `yq` is not installed, the script will prompt the user to install it.

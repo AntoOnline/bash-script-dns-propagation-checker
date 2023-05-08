@@ -2,22 +2,13 @@
 
 # Remove DNS servers from the list if name servers could not be reached or record not found.
 # Only used to trim old or stale DNS servers from the list. Use example.com to test.
-remove_dns_server=false
+remove_dns_server="n"
 
 query_dns_servers() {
     local domain="$1"
     local record_type="$2"
     local dns_servers_yaml="$3"
-    local remove_dns_server=$4
-
-    counter=0
-    total_dns_servers=$(yq -r 'length' "$dns_servers_yaml")
-
-    # Load the DNS servers list from YAML file
-    if [ ! -f "$dns_servers_yaml" ]; then
-        echo "Error: $dns_servers_yaml not found"
-        return 1
-    fi
+    local remove_dns_server="$4"
 
     counter=0
     total_dns_servers=$(yq -r 'length' "$dns_servers_yaml")
@@ -46,12 +37,9 @@ query_dns_servers() {
         records=$(dig "@${dns_server_ip}" "${record_type}" "${domain}" +short)
         if [ -z "$records" ]; then
             echo "No ${record_type} records found for ${domain}"
-            if $remove_dns; then
-                yq "del(.[] | select(.reverse == \"$dns_server_reverse\"))" "$dns_servers_yaml" -i
-            fi
         elif [[ "$records" =~ "no servers could be reached" ]]; then
             echo "No servers could be reached"
-            if $remove_dns; then
+            if [[ $remove_dns = "y" ]]; then
                 yq "del(.[] | select(.reverse == \"$dns_server_reverse\"))" "$dns_servers_yaml" -i
             fi
         else
@@ -64,7 +52,7 @@ query_dns_servers() {
 }
 
 if [ -z "$1" ]; then
-    echo "Usage: $0 <domain> [record_type]"
+    echo "Usage: $0 <domain> [record_type] [dns_yaml_file]"
     exit 1
 fi
 
@@ -76,12 +64,21 @@ if [[ ! "${1}" =~ $domain_pattern ]]; then
 fi
 domain="${1}"
 
-record_type="${2:-A}" # Default to 'A' record if not specified
+record_type="${2}"
 
 # Validate the record type
 if [[ ! "$record_type" =~ ^(A|AAAA|CNAME|MX|NS|PTR|SOA|SRV|TXT)$ ]]; then
-    echo "Invalid record type: $record_type"
+    echo "Invalid record type: can be A, AAAA, CNAME, MX, NS, PTR, SOA, SRV or TXT"
     exit 1
+fi
+
+# Validate list type
+dns_yaml_file="${3}"
+
+# Load the DNS servers list from YAML file
+if [ ! -f "$dns_yaml_file" ]; then
+    echo "Error: $dns_yaml_file not found"
+    exit 0
 fi
 
 # Check if yq is installed and install it if it's not
@@ -94,9 +91,5 @@ fi
 # Original list from: https://github.com/YoSmudge/dnsyo/blob/master/resolver-list.yml
 
 # Query each DNS server for: common servers
-printf "Getting ${record_type} records for ${domain} from ${total_servers} popular DNS servers...\n\n"
-query_dns_servers $1 $2 "dns_servers_common.yaml" $remove_dns_server
-
-# Query each DNS server for: common servers
-printf "Getting ${record_type} records for ${domain} from ${total_servers} our full list DNS servers...\n\n"
-query_dns_servers $1 $2 "dns_servers_all.yaml" $remove_dns_server
+printf "Getting ${record_type} records for ${domain} from ${total_servers} ${dns_yaml_file} DNS servers...\n\n"
+query_dns_servers $1 $2 $dns_yaml_file $remove_dns_server
