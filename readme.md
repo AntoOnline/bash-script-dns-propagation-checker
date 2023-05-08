@@ -48,3 +48,13 @@ You can use one of these files as a starting point for your own list of DNS serv
 ## Dependencies
 
 This script requires the `dig` command and the `yq` tool. If `yq` is not installed, the script will prompt the user to install it.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+
+## Want to connect?
+
+Feel free to contact me on [Twitter](https://twitter.com/OnlineAnto), [DEV Community](https://dev.to/antoonline/) or [LinkedIn](https://www.linkedin.com/in/anto-online) if you have any questions or suggestions.
+
+Or just visit my [website](https://anto.online) to see what I do.
